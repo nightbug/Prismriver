@@ -1,4 +1,4 @@
-package theTodo;
+package Prismriver;
 
 import basemod.AutoAdd;
 import basemod.BaseMod;
@@ -15,23 +15,19 @@ import com.megacrit.cardcrawl.localization.CharacterStrings;
 import com.megacrit.cardcrawl.localization.PowerStrings;
 import com.megacrit.cardcrawl.localization.RelicStrings;
 import com.megacrit.cardcrawl.unlock.UnlockTracker;
-import theTodo.cards.AbstractEasyCard;
-import theTodo.cards.cardvars.SecondDamage;
-import theTodo.cards.cardvars.SecondMagicNumber;
-import theTodo.relics.AbstractEasyRelic;
 
 import java.nio.charset.StandardCharsets;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 @SpireInitializer
-public class TodoMod implements
+public class PrismriverCore implements
         EditCardsSubscriber,
         EditRelicsSubscriber,
         EditStringsSubscriber,
         EditKeywordsSubscriber,
         EditCharactersSubscriber {
 
-    public static final String modID = "todomod"; //TODO: Change this.
+    public static final String modID = "prismriver";
 
     public static String makeID(String idText) {
         return modID + ":" + idText;
@@ -54,14 +50,8 @@ public class TodoMod implements
     private static final String CHARSELECT_BUTTON = modID + "Resources/images/charSelect/charButton.png";
     private static final String CHARSELECT_PORTRAIT = modID + "Resources/images/charSelect/charBG.png";
 
-    public TodoMod() {
+    public PrismriverCore() {
         BaseMod.subscribe(this);
-
-        BaseMod.addColor(TheTodo.Enums.TODO_COLOR, characterColor, characterColor, characterColor,
-                characterColor, characterColor, characterColor, characterColor,
-                ATTACK_S_ART, SKILL_S_ART, POWER_S_ART, CARD_ENERGY_S,
-                ATTACK_L_ART, SKILL_L_ART, POWER_L_ART,
-                CARD_ENERGY_L, TEXT_ENERGY);
     }
 
     public static String makePath(String resourcePath) {
@@ -85,39 +75,19 @@ public class TodoMod implements
     }
 
     public static void initialize() {
-        TodoMod thismod = new TodoMod();
+        PrismriverCore thismod = new PrismriverCore();
     }
 
     @Override
     public void receiveEditCharacters() {
-        BaseMod.addCharacter(new TheTodo(TheTodo.characterStrings.NAMES[1], TheTodo.Enums.THE_TODO),
-                CHARSELECT_BUTTON, CHARSELECT_PORTRAIT, TheTodo.Enums.THE_TODO);
     }
 
     @Override
     public void receiveEditRelics() {
-        new AutoAdd(modID)
-                .packageFilter(AbstractEasyRelic.class)
-                .any(AbstractEasyRelic.class, (info, relic) -> {
-                    if (relic.color == null) {
-                        BaseMod.addRelic(relic, RelicType.SHARED);
-                    } else {
-                        BaseMod.addRelicToCustomPool(relic, relic.color);
-                    }
-                    if (!info.seen) {
-                        UnlockTracker.markRelicAsSeen(relic.relicId);
-                    }
-                });
     }
 
     @Override
     public void receiveEditCards() {
-        BaseMod.addDynamicVariable(new SecondMagicNumber());
-        BaseMod.addDynamicVariable(new SecondDamage());
-        new AutoAdd(modID)
-                .packageFilter(AbstractEasyCard.class)
-                .setDefaultSeen(true)
-                .cards();
     }
 
 
