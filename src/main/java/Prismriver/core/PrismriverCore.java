@@ -3,7 +3,6 @@ package Prismriver.core;
 import basemod.*;
 import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Color;
-import com.badlogic.gdx.math.MathUtils;
 import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
 import com.megacrit.cardcrawl.core.CardCrawlGame;
@@ -174,21 +173,4 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
         BaseMod.loadCustomStringsFile(UIStrings.class, modID + "Resources/localization/eng/ui.json");
     }
 
-    private static File[] getAllModFiles(String directory)
-    {
-        File file = new File(directory);
-        if (!file.exists() || !file.isDirectory()) { return new File[0]; }
-
-        File[] files = file.listFiles(new FilenameFilter() {
-            @Override
-            public boolean accept(File dir, String name) {
-                return name.toLowerCase().endsWith(".jar");
-            }
-        });
-
-        if (files == null || files.length == 0) {
-            return new File[0];
-        }
-        return files;
-    }
 }
