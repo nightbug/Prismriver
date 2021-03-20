@@ -6,7 +6,7 @@
     <artifactId>Prismriver</artifactId>
     <version>0.0.1</version>
     <name>Prismriver</name>
-    <description>TODO: Change this description</description>
+    <description>Prismriver is a mod that can replace vanilla Spire's music with any music you want.</description>
     <!-- Change the above for mod information. -->
 
     <properties>

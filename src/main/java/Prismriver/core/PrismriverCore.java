@@ -87,7 +87,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
                     }
                 });
         registerUIElement(defaultButton, true);
-        ModLabeledToggleButton wildCardButton = new ModLabeledToggleButton(TEXT[1], xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showDefault(), settingsPanel, l -> {
+        ModLabeledToggleButton wildCardButton = new ModLabeledToggleButton(TEXT[1], xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showWildcard(), settingsPanel, l -> {
         },
                 button ->
                 {
@@ -136,6 +136,12 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
         if (modConfig == null) { return false; }
         return modConfig.getString("currentKey").equals(key);
     }
+
+    public static boolean showWildcard() {
+        if (modConfig == null) { return false; }
+        return modConfig.getBool("wildCard");
+    }
+
 
     private final float pageOffset = 12000f;
     private HashMap<Integer, ArrayList<IUIElement>> pages = new HashMap<Integer, ArrayList<IUIElement>>() {{
