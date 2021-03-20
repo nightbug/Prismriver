@@ -10,6 +10,7 @@ import com.evacipated.cardcrawl.modthespire.lib.SpireReturn;
 import com.megacrit.cardcrawl.audio.MainMusic;
 import com.megacrit.cardcrawl.audio.MockMusic;
 import com.megacrit.cardcrawl.audio.TempMusic;
+import com.sun.deploy.security.SelectableSecurityManager;
 
 import java.io.File;
 import java.net.URL;
@@ -49,9 +50,8 @@ public class MusicPatch2 {
                     }
                 }
             }
-        } else {
-            assert Gdx.audio != null;
-            return SpireReturn.Continue();
         }
+        assert Gdx.audio != null;
+        return SpireReturn.Continue();
     }
 }
