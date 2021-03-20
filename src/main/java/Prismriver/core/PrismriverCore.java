@@ -1,17 +1,23 @@
 package Prismriver.core;
 
-import basemod.BaseMod;
+import basemod.*;
 import basemod.interfaces.*;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.math.MathUtils;
+import com.evacipated.cardcrawl.modthespire.lib.SpireConfig;
 import com.evacipated.cardcrawl.modthespire.lib.SpireInitializer;
-import com.megacrit.cardcrawl.localization.CardStrings;
-import com.megacrit.cardcrawl.localization.CharacterStrings;
-import com.megacrit.cardcrawl.localization.PowerStrings;
-import com.megacrit.cardcrawl.localization.RelicStrings;
+import com.megacrit.cardcrawl.core.CardCrawlGame;
+import com.megacrit.cardcrawl.core.Settings;
+import com.megacrit.cardcrawl.helpers.FontHelper;
+import com.megacrit.cardcrawl.helpers.ImageMaster;
+import com.megacrit.cardcrawl.localization.*;
 
 import java.io.File;
+import java.io.FilenameFilter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Properties;
 
 @SuppressWarnings({"unused", "WeakerAccess"})
 @SpireInitializer
@@ -19,6 +25,13 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
 
     public static final String modID = "prismriver";
     public static String MOD_DIR = "prismriver/";
+    public static String defaultKey = "Default";
+    public static String currentKey = "";
+    public ArrayList<String> keyList = new ArrayList<>();
+    private static SpireConfig modConfig = null;
+    private float xPos = 350f, yPos = 750f, orgYPos = 750f;
+    private ModPanel settingsPanel;
+    private int curPage = 1;
 
     public static String makeID(String idText) {
         return modID + ":" + idText;
@@ -40,22 +53,142 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
 
     public static void initialize() {
         PrismriverCore thismod = new PrismriverCore();
+        try {
+            Properties defaults = new Properties();
+            defaults.put("currentKey", defaultKey);
+            modConfig = new SpireConfig("PrismRiver", "Config", defaults);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     public void receivePostInitialize(){
         File file = new File(MOD_DIR);
-        if (!file.exists() || !file.isDirectory()) {
-            file.mkdir();
+        if (!file.exists() || !file.isDirectory()) { file.mkdir(); }
+        //Creating a File object for directory
+        File directoryPath = new File(MOD_DIR);
+        //List of all files and directories
+        File filesList[] = directoryPath.listFiles();
+        System.out.println("List of files and directories in the specified directory:");
+        for(File f : filesList) {
+            if(f.isDirectory()) { keyList.add(f.getName()); }
+        }
+        UIStrings UIStrings = CardCrawlGame.languagePack.getUIString(makeID("OptionsMenu"));
+        String[] TEXT = UIStrings.TEXT;
+        settingsPanel = new ModPanel();
+        ModLabeledToggleButton defButton = new ModLabeledToggleButton(TEXT[0], xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showDefault(), settingsPanel, l -> {
+        },
+                button ->
+                {
+                    if (modConfig != null) {
+                        modConfig.setString("currentKey", defaultKey);
+                        saveConfig();
+                    }
+                });
+        registerUIElement(defButton, true);
+        for(String key: keyList){
+            ModLabeledToggleButton keyButton = new ModLabeledToggleButton(String.format(TEXT[1], key), xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showKey(key), settingsPanel, l -> {
+            },
+                    button ->
+                    {
+                        if (modConfig != null) {
+                            modConfig.setString("currentKey", key);
+                            saveConfig();
+                        }
+                    });
+            registerUIElement(keyButton, true);
+        }
+        if (pages.size() > 1) {
+            ModLabeledButton FlipPageBtn = new ModLabeledButton(TEXT[2], xPos + 450f, orgYPos + 45f, Settings.CREAM_COLOR, Color.WHITE, FontHelper.cardEnergyFont_L, settingsPanel,
+                    button ->
+                    {
+                        if (pages.containsKey(curPage + 1)) {
+                            changePage(curPage + 1);
+                        } else {
+                            changePage(1);
+                        }
+                    });
+            settingsPanel.addUIElement(FlipPageBtn);
+        }
+
+        BaseMod.registerModBadge(ImageMaster.loadImage(modID + "Resources/images/modBadge.png"), modID, "squeeny", "", settingsPanel);
+
+    }
+
+    public static boolean showDefault() {
+        if (modConfig == null) { return false; }
+        return modConfig.getString("currentKey").equals(defaultKey);
+    }
+
+    public static boolean showKey(String key) {
+        if (modConfig == null) { return false; }
+        return modConfig.getString("currentKey").equals(key);
+    }
+
+    private final float pageOffset = 12000f;
+    private HashMap<Integer, ArrayList<IUIElement>> pages = new HashMap<Integer, ArrayList<IUIElement>>() {{
+        put(1, new ArrayList<>());
+    }};
+    private float elementSpace = 50f;
+    private float yThreshold = yPos - elementSpace * 12;
+
+    private void registerUIElement(IUIElement elem, boolean decrement) {
+        settingsPanel.addUIElement(elem);
+
+        int page = pages.size() + (yThreshold == yPos ? 1 : 0);
+        if (!pages.containsKey(page)) {
+            pages.put(page, new ArrayList<>());
+            yPos = orgYPos;
+            elem.setY(yPos);
+        }
+        if (page > curPage) {
+            elem.setX(elem.getX() + pageOffset);
+        }
+        pages.get(page).add(elem);
+
+        if (decrement) {
+            yPos -= elementSpace;
         }
     }
-    public void receiveEditStrings() {
-        BaseMod.loadCustomStringsFile(CardStrings.class, modID + "Resources/localization/eng/Cardstrings.json");
 
-        BaseMod.loadCustomStringsFile(RelicStrings.class, modID + "Resources/localization/eng/Relicstrings.json");
+    private void changePage(int i) {
+        for (IUIElement e : pages.get(curPage)) {
+            e.setX(e.getX() + pageOffset);
+        }
 
-        BaseMod.loadCustomStringsFile(CharacterStrings.class, modID + "Resources/localization/eng/Charstrings.json");
-
-        BaseMod.loadCustomStringsFile(PowerStrings.class, modID + "Resources/localization/eng/Powerstrings.json");
+        for (IUIElement e : pages.get(i)) {
+            e.setX(e.getX() - pageOffset);
+        }
+        curPage = i;
     }
 
+    private void saveConfig() {
+        try {
+            modConfig.save();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void receiveEditStrings() {
+        BaseMod.loadCustomStringsFile(UIStrings.class, modID + "Resources/localization/eng/ui.json");
+    }
+
+    private static File[] getAllModFiles(String directory)
+    {
+        File file = new File(directory);
+        if (!file.exists() || !file.isDirectory()) { return new File[0]; }
+
+        File[] files = file.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String name) {
+                return name.toLowerCase().endsWith(".jar");
+            }
+        });
+
+        if (files == null || files.length == 0) {
+            return new File[0];
+        }
+        return files;
+    }
 }

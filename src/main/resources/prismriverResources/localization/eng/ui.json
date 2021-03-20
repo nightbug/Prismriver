@@ -1,0 +1,9 @@
+{
+  "${ModID}:OptionsMenu": {
+    "TEXT": [
+      "Revert to Default BGM",
+      "Select Soundpack: %1$s",
+      "Next Page"
+    ]
+  }
+}
