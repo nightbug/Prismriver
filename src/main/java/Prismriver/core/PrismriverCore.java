@@ -16,6 +16,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Properties;
 
@@ -24,11 +25,11 @@ import java.util.Properties;
 public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubscriber {
 
     public static final String modID = "prismriver";
-    public static String AUDIO_DIR = "prismriver/";
-    public static String defaultKey = "Default";
-    public static Boolean wildCardMode = false;
-    public static String currentKey = "";
-    public ArrayList<String> keyList = new ArrayList<>();
+    private static String AUDIO_DIR = "prismriver/";
+    private static String defaultKey = "Default";
+    private static Boolean wildCardMode;
+    private static String currentKey = "";
+    private static ArrayList<String> keyList = new ArrayList<>();
     private static SpireConfig modConfig = null;
     private float xPos = 350f, yPos = 750f, orgYPos = 750f;
     private ModPanel settingsPanel;
@@ -58,11 +59,12 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
         try {
             Properties defaults = new Properties();
             defaults.put("currentKey", defaultKey);
-            defaults.put("wildCard", wildCardMode);
+            defaults.put("wildCard", false);
             modConfig = new SpireConfig("PrismRiver", "Config", defaults);
         } catch (Exception e) {
             e.printStackTrace();
         }
+        loadConfig();
     }
 
     public void receivePostInitialize(){
@@ -90,7 +92,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
                 button ->
                 {
                     if (modConfig != null) {
-                        modConfig.setBool("wildCard", wildCardMode);
+                        modConfig.setBool("wildCard", button.enabled);
                         saveConfig();
                     }
                 });
@@ -120,6 +122,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
             settingsPanel.addUIElement(FlipPageBtn);
         }
         currentKey = modConfig.getString("currentKey");
+        wildCardMode = modConfig.getBool("wildCard");
         BaseMod.registerModBadge(ImageMaster.loadImage(modID + "Resources/images/modBadge.png"), modID, "squeeny", "", settingsPanel);
 
     }
@@ -171,7 +174,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
         curPage = i;
     }
 
-    private void saveConfig() {
+    private static void saveConfig() {
         try {
             currentKey = modConfig.getString("currentKey");
             wildCardMode = modConfig.getBool("wildCard");
@@ -181,8 +184,28 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
         }
     }
 
+    private static void loadConfig() {
+        currentKey = modConfig.getString("currentKey");
+        wildCardMode = modConfig.getBool("wildCard");
+    }
+
     public void receiveEditStrings() {
         BaseMod.loadCustomStringsFile(UIStrings.class, modID + "Resources/localization/eng/ui.json");
     }
 
+    public static boolean isWildCardModeEnabled(){ return wildCardMode; }
+    public static String returnRandomFolderForWildCard(){
+        logger.info(keyList.toString());
+        if(!keyList.isEmpty()){
+            logger.info("Shuffled contents.");
+            Collections.shuffle(keyList);
+            logger.info(keyList.toString());
+            logger.info(keyList.get(0));
+            return keyList.get(0);
+        }
+        return defaultKey;
+    }
+    public static boolean isDefaultKey(){ return currentKey.equals(defaultKey); }
+    public static String getAudioDir(){ return AUDIO_DIR; }
+    public static String getCurrentKey(){ return currentKey; }
 }
