@@ -10,9 +10,10 @@ import com.megacrit.cardcrawl.core.Settings;
 import com.megacrit.cardcrawl.helpers.FontHelper;
 import com.megacrit.cardcrawl.helpers.ImageMaster;
 import com.megacrit.cardcrawl.localization.*;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.io.FilenameFilter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -23,7 +24,7 @@ import java.util.Properties;
 public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubscriber {
 
     public static final String modID = "prismriver";
-    public static String MOD_DIR = "prismriver/";
+    public static String AUDIO_DIR = "prismriver/";
     public static String defaultKey = "Default";
     public static String currentKey = "";
     public ArrayList<String> keyList = new ArrayList<>();
@@ -32,6 +33,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
     private ModPanel settingsPanel;
     private int curPage = 1;
 
+    public static final Logger logger = LogManager.getLogger(PrismriverCore.class.getName());
     public static String makeID(String idText) {
         return modID + ":" + idText;
     }
@@ -62,16 +64,11 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
     }
 
     public void receivePostInitialize(){
-        File file = new File(MOD_DIR);
+        File file = new File(AUDIO_DIR);
         if (!file.exists() || !file.isDirectory()) { file.mkdir(); }
-        //Creating a File object for directory
-        File directoryPath = new File(MOD_DIR);
-        //List of all files and directories
+        File directoryPath = new File(AUDIO_DIR);
         File filesList[] = directoryPath.listFiles();
-        System.out.println("List of files and directories in the specified directory:");
-        for(File f : filesList) {
-            if(f.isDirectory()) { keyList.add(f.getName()); }
-        }
+        for(File f : filesList) { if(f.isDirectory()) { keyList.add(f.getName()); } }
         UIStrings UIStrings = CardCrawlGame.languagePack.getUIString(makeID("OptionsMenu"));
         String[] TEXT = UIStrings.TEXT;
         settingsPanel = new ModPanel();
@@ -109,7 +106,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
                     });
             settingsPanel.addUIElement(FlipPageBtn);
         }
-
+        currentKey = modConfig.getString("currentKey");
         BaseMod.registerModBadge(ImageMaster.loadImage(modID + "Resources/images/modBadge.png"), modID, "squeeny", "", settingsPanel);
 
     }
@@ -163,6 +160,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
 
     private void saveConfig() {
         try {
+            currentKey = modConfig.getString("currentKey");
             modConfig.save();
         } catch (IOException e) {
             e.printStackTrace();
