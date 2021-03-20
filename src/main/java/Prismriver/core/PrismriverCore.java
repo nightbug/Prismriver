@@ -26,6 +26,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
     public static final String modID = "prismriver";
     public static String AUDIO_DIR = "prismriver/";
     public static String defaultKey = "Default";
+    public static Boolean wildCardMode = false;
     public static String currentKey = "";
     public ArrayList<String> keyList = new ArrayList<>();
     private static SpireConfig modConfig = null;
@@ -57,6 +58,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
         try {
             Properties defaults = new Properties();
             defaults.put("currentKey", defaultKey);
+            defaults.put("wildCard", wildCardMode);
             modConfig = new SpireConfig("PrismRiver", "Config", defaults);
         } catch (Exception e) {
             e.printStackTrace();
@@ -67,12 +69,13 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
         File file = new File(AUDIO_DIR);
         if (!file.exists() || !file.isDirectory()) { file.mkdir(); }
         File directoryPath = new File(AUDIO_DIR);
-        File filesList[] = directoryPath.listFiles();
-        for(File f : filesList) { if(f.isDirectory()) { keyList.add(f.getName()); } }
+        File[] filesList = directoryPath.listFiles();
+        assert filesList != null;
+        for(File f : filesList) { if(f.isDirectory() && !f.getName().equals(defaultKey)) { keyList.add(f.getName()); } }
         UIStrings UIStrings = CardCrawlGame.languagePack.getUIString(makeID("OptionsMenu"));
         String[] TEXT = UIStrings.TEXT;
         settingsPanel = new ModPanel();
-        ModLabeledToggleButton defButton = new ModLabeledToggleButton(TEXT[0], xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showDefault(), settingsPanel, l -> {
+        ModLabeledToggleButton defaultButton = new ModLabeledToggleButton(TEXT[0], xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showDefault(), settingsPanel, l -> {
         },
                 button ->
                 {
@@ -81,9 +84,19 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
                         saveConfig();
                     }
                 });
-        registerUIElement(defButton, true);
+        registerUIElement(defaultButton, true);
+        ModLabeledToggleButton wildCardButton = new ModLabeledToggleButton(TEXT[1], xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showDefault(), settingsPanel, l -> {
+        },
+                button ->
+                {
+                    if (modConfig != null) {
+                        modConfig.setBool("wildCard", wildCardMode);
+                        saveConfig();
+                    }
+                });
+        registerUIElement(wildCardButton, true);
         for(String key: keyList){
-            ModLabeledToggleButton keyButton = new ModLabeledToggleButton(String.format(TEXT[1], key), xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showKey(key), settingsPanel, l -> {
+            ModLabeledToggleButton keyButton = new ModLabeledToggleButton(String.format(TEXT[2], key), xPos, yPos, Settings.CREAM_COLOR, FontHelper.charDescFont, showKey(key), settingsPanel, l -> {
             },
                     button ->
                     {
@@ -95,7 +108,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
             registerUIElement(keyButton, true);
         }
         if (pages.size() > 1) {
-            ModLabeledButton FlipPageBtn = new ModLabeledButton(TEXT[2], xPos + 450f, orgYPos + 45f, Settings.CREAM_COLOR, Color.WHITE, FontHelper.cardEnergyFont_L, settingsPanel,
+            ModLabeledButton FlipPageBtn = new ModLabeledButton(TEXT[3], xPos + 450f, orgYPos + 45f, Settings.CREAM_COLOR, Color.WHITE, FontHelper.cardEnergyFont_L, settingsPanel,
                     button ->
                     {
                         if (pages.containsKey(curPage + 1)) {
@@ -161,6 +174,7 @@ public class PrismriverCore implements EditStringsSubscriber, PostInitializeSubs
     private void saveConfig() {
         try {
             currentKey = modConfig.getString("currentKey");
+            wildCardMode = modConfig.getBool("wildCard");
             modConfig.save();
         } catch (IOException e) {
             e.printStackTrace();
